@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { Reveal } from "@/components/reveal";
 import { PrintButton } from "@/components/print-button";
-import { education, experience, profile, projects, stack } from "@/content/profile";
+import { achievements, education, experience, profile, projects, stack } from "@/content/profile";
 
 export const metadata: Metadata = {
   title: "Résumé",
@@ -147,12 +147,28 @@ export default function ResumePage() {
           </div>
         </Block>
 
+        {/* ---------------------------------------------------- achievements */}
+        <Block index="05" title="Achievements" delay={245}>
+          <ul className="space-y-2.5">
+            {achievements.map((item) => (
+              <li
+                key={item.title}
+                className="relative max-w-[70ch] pl-4 text-[13px] leading-[1.7] print-break"
+              >
+                <span className="absolute left-0 top-[0.62em] h-px w-2 bg-line-2" />
+                <span className="text-fg">{item.title}</span>
+                <span className="text-fg-3"> — {item.note}</span>
+              </li>
+            ))}
+          </ul>
+        </Block>
+
         {/* ---------------------------------------------------------- skills */}
-        <Block index="05" title="Technical skills" delay={250}>
+        <Block index="06" title="Technical skills" delay={260}>
           <dl className="space-y-3">
             {Object.entries(stack).map(([group, items]) => (
               <div key={group} className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                <dt className="label w-[92px] shrink-0 !text-[9.5px]">{group}</dt>
+                <dt className="label w-[108px] shrink-0 !text-[9.5px]">{group}</dt>
                 <dd className="flex-1 text-[13px] text-fg-2">{items.join(" · ")}</dd>
               </div>
             ))}

@@ -66,23 +66,32 @@ quiet fallback instead of breaking the page.
 
 **Needs your input:**
 
-1. **The AI/ML internship details.** It's on the page but unverified — there is a
-   `TODO:` above `experience` in `content/profile.ts`. Needs the real employer,
-   your exact title, and the month range. Everything else on the site is sourced.
-2. **The hero image.** Swap `profile.hero.src` in `content/profile.ts` — drop a
+1. **The hero image.** Swap `profile.hero.src` in `content/profile.ts` — drop a
    file in `/public` and point at `/your-file.jpg`. `position` controls the crop.
-3. **Gallery photos.** Six Unsplash placeholders. Replace with your own —
+2. **Gallery photos.** Six Unsplash placeholders. Replace with your own —
    `/public/gallery/*.jpg`, and set each `ratio` to that image's width / height.
+3. **Phone number.** Your résumé PDF carries +91 88375-13788; the site does not.
+   Deliberate — a public web page is a different exposure from a PDF you hand to
+   a recruiter. Add it to `profile` if you want it there.
 
 **Settled:**
 
+- Every word of experience, projects, education and skills now comes from
+  `Javin_Chutani_Software_Engg_Resume.pdf`. Keep the two in sync.
 - Contact address is `javin.chutani@gmail.com` (hero, contact section, résumé).
-- The "Open-source contributor" experience entry was **removed** — it was inferred
-  from forks rather than merged PRs. The vLLM / SGLang material now lives in the
-  Currently section, which is the honest place for it.
-- **Airport is deliberately not listed.** There's a comment where it used to sit
-  in the `projects` array; add it back once it has a README. The hero bio no
-  longer references it either.
+- Experience is **Bajaj Housing Finance** (AI/ML Intern, Jun 2026 – Present) and
+  **XCEED, NIT Jalandhar** (Research Intern, Mar 2026 – Present). The earlier
+  "Open-source contributor" entry was removed as unsupported by merged PRs.
+- Featured projects match your résumé's three: OnlyTrades, FlokiDB, GossipKaro.
+- **Airport is deliberately not listed.** There's a comment where it would sit in
+  the `projects` array; add it back once it has a README.
+
+**Two discrepancies against the PDF, flagged not silently fixed:**
+
+- The résumé calls the Go database **JavinKV**; the GitHub repo is **FlokiDB**.
+  The site uses FlokiDB because that's what the link resolves to — rename one.
+- The résumé says *350+ LeetCode*; the live API reports **415**. The site's
+  achievements line says 400+ so it stays true as the number moves.
 
 **Not yet done:**
 
