@@ -66,19 +66,23 @@ quiet fallback instead of breaking the page.
 
 **Needs your input:**
 
-1. **The hero image.** Swap `profile.hero.src` in `content/profile.ts` — drop a
+1. **The AI/ML internship details.** It's on the page but unverified — there is a
+   `TODO:` above `experience` in `content/profile.ts`. Needs the real employer,
+   your exact title, and the month range. Everything else on the site is sourced.
+2. **The hero image.** Swap `profile.hero.src` in `content/profile.ts` — drop a
    file in `/public` and point at `/your-file.jpg`. `position` controls the crop.
-2. **Verify the experience section.** `content/profile.ts` has a `NOTE:` comment
-   above `experience` — I reconstructed those three roles from your old site and
-   your repos. The titles, orgs and dates need your confirmation. The
-   AI/ML internship in particular has no source I could check.
-3. **Email.** Currently your college address `javinc.ds.24@nitj.ac.in` is public
-   on the page and in the résumé. Swap it if you'd rather use a personal one.
-4. **Gallery photos.** Six Unsplash placeholders. Replace with your own —
+3. **Gallery photos.** Six Unsplash placeholders. Replace with your own —
    `/public/gallery/*.jpg`, and set each `ratio` to that image's width / height.
-5. **`Airport` blurb.** The repo has no README; I described it from its structure
-   (`internal/gitrepo`, `sourcearchive`, `storage`, MinIO, Compose). Confirm it's
-   accurate.
+
+**Settled:**
+
+- Contact address is `javin.chutani@gmail.com` (hero, contact section, résumé).
+- The "Open-source contributor" experience entry was **removed** — it was inferred
+  from forks rather than merged PRs. The vLLM / SGLang material now lives in the
+  Currently section, which is the honest place for it.
+- **Airport is deliberately not listed.** There's a comment where it used to sit
+  in the `projects` array; add it back once it has a README. The hero bio no
+  longer references it either.
 
 **Not yet done:**
 

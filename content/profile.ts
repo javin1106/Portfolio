@@ -19,7 +19,7 @@ export const profile = {
     { text: "I’m Javin — a Data Science undergrad at " },
     { text: "NIT Jalandhar", href: "https://www.nitj.ac.in/" },
     {
-      text: ", though most of what I know came from rebuilding things that already work. A Redis-compatible database in Go. A crypto exchange with a real matching engine. An object-storage service for Git snapshots.",
+      text: ", though most of what I know came from rebuilding things that already work. A Redis-compatible database in Go. A crypto exchange with a real matching engine.",
     },
     {
       text: " I like the layer most people abstract away — wire protocols, event loops, memory, the exact moment a system decides to say no.",
@@ -32,7 +32,7 @@ export const profile = {
   location: "Jalandhar, Punjab · IN",
   email: "javin.chutani@gmail.com",
   timezone: "IST · UTC+5:30",
-  availability: "Open to 2027 internships",
+  availability: "Open to work and internships",
 
   github: "javin1106",
   leetcode: "javinchutani",
@@ -96,16 +96,8 @@ export const projects: Project[] = [
     live: "https://onlytrades-delta.vercel.app",
     featured: true,
   },
-  {
-    name: "Airport",
-    blurb:
-      "A Go service that snapshots Git repositories into content-addressed source archives and stores them on S3-compatible object storage, behind a small HTTP API. Containerised with Compose.",
-    year: "2026",
-    stack: ["Go", "MinIO / S3", "Docker", "HTTP"],
-    status: "building",
-    repo: "https://github.com/javin1106/Airport",
-    featured: true,
-  },
+  // Airport (github.com/javin1106/Airport) is deliberately left out for now —
+  // add it back here once it has a README and you're happy to show it.
   {
     name: "MindMirror",
     blurb:
@@ -184,21 +176,12 @@ export type Experience = {
 };
 
 /**
- * NOTE: verify the titles and dates below — these were reconstructed from your
- * previous site and public repos. Everything else on the page is sourced.
+ * TODO: the AI/ML internship below still needs its real employer, exact title
+ * and month range — it was carried over from the previous site and there is no
+ * public repo to check it against. The NIT Jalandhar entry is backed by
+ * github.com/javin1106/AMS-with-TimeTable.
  */
 export const experience: Experience[] = [
-  {
-    role: "Open-source contributor",
-    org: "vLLM · Ray · SGLang · Zulip · Ceph",
-    orgHref: "https://github.com/javin1106?tab=repositories&type=fork",
-    period: "2026 — present",
-    meta: "Inference & distributed systems",
-    points: [
-      "Reading and working through LLM serving internals — paged attention, scheduler paths, and the memory behaviour that decides throughput.",
-      "Digging into Ceph and Kubernetes source to understand how storage and orchestration actually fail in production.",
-    ],
-  },
   {
     role: "AI/ML engineering intern",
     org: "Voice-to-form automation",
