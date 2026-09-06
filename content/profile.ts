@@ -30,7 +30,7 @@ export const profile = {
   ],
 
   location: "Jalandhar, Punjab · IN",
-  email: "javinc.ds.24@nitj.ac.in",
+  email: "javin.chutani@gmail.com",
   timezone: "IST · UTC+5:30",
   availability: "Open to 2027 internships",
 
@@ -42,7 +42,7 @@ export const profile = {
     linkedin: "https://www.linkedin.com/in/javin-chutani",
     twitter: "https://twitter.com/JavinChutani",
     leetcode: "https://leetcode.com/u/javinchutani/",
-    email: "mailto:javinc.ds.24@nitj.ac.in",
+    email: "mailto:javin.chutani@gmail.com",
     resume: "/resume",
   },
 
