@@ -1,56 +1,57 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { SiteNav } from "@/components/site-nav";
-import { GalleryGrid } from "@/components/gallery-grid";
+import { PhotoLibrary } from "@/components/photo-library";
 import { Reveal } from "@/components/reveal";
-import { Footer } from "@/components/contact";
-import { gallery } from "@/content/profile";
+import { Screen } from "@/components/screen";
+import { hobbies } from "@/content/profile";
+import { getPhotos } from "@/lib/gallery";
 
 export const metadata: Metadata = {
-  title: "Gallery",
-  description: "Photographs, colour studies, and the places the work happens.",
+  title: "Off the clock",
+  description: "Hobbies and photographs.",
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const photos = await getPhotos();
+
   return (
-    <>
-      <SiteNav />
-
-      <main id="main" className="mx-auto max-w-5xl px-6 pb-8 pt-28 sm:px-8 sm:pt-36">
-        <Reveal>
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-2 font-mono text-[11px] tracking-tight text-fg-3 transition-colors duration-300 hover:text-accent"
-          >
-            <span className="inline-block transition-transform duration-300 group-hover:-translate-x-0.5">
-              ←
-            </span>
-            Back
-          </Link>
-        </Reveal>
-
-        <Reveal delay={60}>
-          <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-line pb-7">
-            <h1 className="serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]">Gallery</h1>
-            <p className="mono !text-[11px] tabular-nums">
-              {gallery.length} frames · click to enlarge
-            </p>
-          </div>
-        </Reveal>
-
-        <Reveal delay={110}>
-          <p className="mt-7 max-w-[56ch] text-[14px] leading-[1.75] text-fg-3">
-            Things I photograph when I’m not staring at a terminal — light, structure, and
-            the occasional reminder to zoom out.
-          </p>
-        </Reveal>
-
-        <div className="mt-12">
-          <GalleryGrid />
+    <Screen index="04" title="Off the clock" wide>
+      {hobbies.length ? (
+        <div className="mb-10 grid gap-3 sm:grid-cols-3">
+          {hobbies.map((h, i) => {
+            const body = (
+              <>
+                <p className="text-[15px] font-medium text-fg">{h.title}</p>
+                {h.note ? <p className="mt-1.5 text-[13px] leading-[1.6] text-fg-3">{h.note}</p> : null}
+              </>
+            );
+            return (
+              <Reveal key={h.title} delay={i * 60}>
+                {h.href ? (
+                  <a
+                    href={h.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block h-full rounded-2xl border border-line-2 p-4 transition-colors duration-300 hover:border-accent"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <div className="h-full rounded-2xl border border-line-2 p-4">{body}</div>
+                )}
+              </Reveal>
+            );
+          })}
         </div>
+      ) : null}
 
-        <Footer />
-      </main>
-    </>
+      <p className="label mb-1 !text-[10px]">
+        Photos <span className="text-fg-4">· {photos.length}</span>
+      </p>
+      {photos.length ? (
+        <PhotoLibrary photos={photos} />
+      ) : (
+        <p className="font-mono text-[12px] text-fg-4">Nothing here yet.</p>
+      )}
+    </Screen>
   );
 }

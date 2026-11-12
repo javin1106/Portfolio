@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   Design tokens — "warm paper on ink"
-   Dark is the default. `.light` on <html> flips it.
+   "Engineered paper"
+   Warm ink, film grain, dotted blueprint rules, one accent colour.
+   The accent is not fixed: it is pulled from the album art of whatever is
+   playing on Spotify and eased between songs (see components/now-playing.tsx).
    ========================================================================== */
 
 @theme {
@@ -23,53 +25,116 @@
   --color-accent-soft: var(--accent-soft);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+ * The whole palette comes from the photo on the home-page banner:
+ *   --ah / --as  accent hue & saturation (the photo's most vivid colour)
+ *   --th / --ts  tint hue & saturation (its overall mood, whispered into text)
+ * They are *registered* properties, so the browser can interpolate them — when
+ * the slideshow moves on, the entire site glides to the next photo's colours.
+ * Lightness never comes from the photo, so contrast is identical every time.
+ */
+@property --ah {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 22;
+}
+@property --as {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 52%;
+}
+/* The grain's own copy of the accent, changed in steps (see .grain::after) */
+@property --gh {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 22;
+}
+@property --gs {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 52%;
+}
+@property --th {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 30;
+}
+@property --ts {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 10%;
 }
 
 :root {
   color-scheme: dark;
 
-  --bg: #0b0a09;
-  --bg-1: #121110;
-  --bg-2: #1a1816;
-  --fg: #ede7de;
-  --fg-2: #b5aba0;
-  --fg-3: #837a70;
-  --fg-4: #57504a;
-  --line: rgb(237 231 222 / 0.09);
-  --line-2: rgb(237 231 222 / 0.17);
-  --accent: #e08556;
-  --accent-soft: rgb(224 133 86 / 0.13);
-  --sel: rgb(224 133 86 / 0.24);
+  /* Near-black with the faintest trace of the photo's mood */
+  --bg: hsl(var(--th) calc(var(--ts) * 0.45) 4.2%);
+  --bg-1: hsl(var(--th) calc(var(--ts) * 0.45) 7.4%);
+  --bg-2: hsl(var(--th) calc(var(--ts) * 0.45) 11%);
+  /* Text: brighter steps than before for a crisper read */
+  --fg: hsl(var(--th) var(--ts) 94%);
+  --fg-2: hsl(var(--th) calc(var(--ts) * 0.75) 79%);
+  --fg-3: hsl(var(--th) calc(var(--ts) * 0.55) 63%);
+  --fg-4: hsl(var(--th) calc(var(--ts) * 0.45) 45%);
+  --line: hsl(var(--th) var(--ts) 92% / 0.11);
+  --line-2: hsl(var(--th) var(--ts) 92% / 0.2);
+  --rule: hsl(var(--th) var(--ts) 92% / 0.26);
 
-  /* GitHub heatmap ramp */
-  --heat-0: rgb(237 231 222 / 0.055);
-  --heat-1: rgb(224 133 86 / 0.28);
-  --heat-2: rgb(224 133 86 / 0.5);
-  --heat-3: rgb(224 133 86 / 0.74);
-  --heat-4: #f0975f;
+  --accent: hsl(var(--ah) var(--as) 66%);
+  --accent-soft: hsl(var(--ah) var(--as) 66% / 0.13);
+  --accent-glow: hsl(var(--ah) calc(var(--as) * 0.9) 50% / 0.16);
+  --sel: hsl(var(--ah) var(--as) 60% / 0.28);
+
+  /* Contribution heatmap: neutral floor, then the accent at rising strength */
+  --heat-0: hsl(var(--th) var(--ts) 92% / 0.07);
+  --heat-1: color-mix(in oklab, var(--accent) 30%, transparent);
+  --heat-2: color-mix(in oklab, var(--accent) 52%, transparent);
+  --heat-3: color-mix(in oklab, var(--accent) 76%, transparent);
+  --heat-4: var(--accent);
+
+  --grain-opacity: 0.22;
+
+  /*
+   * The accent glides smoothly: it only repaints the few things drawn in it.
+   * The tint touches every text and background colour, so a smooth fade would
+   * repaint the whole page on every frame; it moves in 8 small steps instead,
+   * each too slight for the eye to catch, for an eighth of the work.
+   */
+  transition:
+    --ah 1.8s var(--ease-soft),
+    --as 1.8s var(--ease-soft),
+    --th 2s steps(8, jump-none),
+    --ts 2s steps(8, jump-none),
+    --gh 2s steps(8, jump-none),
+    --gs 2s steps(8, jump-none);
 }
 
 .light {
   color-scheme: light;
 
-  --bg: #faf7f1;
-  --bg-1: #ffffff;
-  --bg-2: #f2ede4;
-  --fg: #1a1613;
-  --fg-2: #4e463e;
-  --fg-3: #7c7268;
-  --fg-4: #a9a096;
-  --line: rgb(26 22 19 / 0.1);
-  --line-2: rgb(26 22 19 / 0.19);
-  --accent: #b4562c;
-  --accent-soft: rgb(180 86 44 / 0.1);
-  --sel: rgb(180 86 44 / 0.16);
+  --bg: hsl(var(--th) calc(var(--ts) * 0.8) 95.5%);
+  --bg-1: hsl(var(--th) calc(var(--ts) * 0.6) 98.5%);
+  --bg-2: hsl(var(--th) calc(var(--ts) * 0.8) 91%);
+  --fg: hsl(var(--th) var(--ts) 8%);
+  --fg-2: hsl(var(--th) calc(var(--ts) * 0.8) 25%);
+  --fg-3: hsl(var(--th) calc(var(--ts) * 0.6) 40%);
+  --fg-4: hsl(var(--th) calc(var(--ts) * 0.5) 58%);
+  --line: hsl(var(--th) var(--ts) 10% / 0.12);
+  --line-2: hsl(var(--th) var(--ts) 10% / 0.22);
+  --rule: hsl(var(--th) var(--ts) 10% / 0.5);
 
-  --heat-0: rgb(26 22 19 / 0.055);
-  --heat-1: rgb(180 86 44 / 0.24);
-  --heat-2: rgb(180 86 44 / 0.46);
-  --heat-3: rgb(180 86 44 / 0.7);
-  --heat-4: #a44a22;
+  --accent: hsl(var(--ah) var(--as) 36%);
+  --accent-soft: hsl(var(--ah) var(--as) 36% / 0.1);
+  --accent-glow: hsl(var(--ah) var(--as) 60% / 0.18);
+  --sel: hsl(var(--ah) var(--as) 50% / 0.2);
+
+  --heat-0: hsl(var(--th) var(--ts) 10% / 0.07);
+
+  --grain-opacity: 0.15;
 }
 
 /* ==========================================================================
@@ -82,7 +147,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 6rem;
+  scroll-padding-top: 5.5rem;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -95,7 +160,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "kern", "liga", "calt";
-  transition: background-color 0.5s var(--ease-out-expo), color 0.5s var(--ease-out-expo);
   overflow-x: hidden;
 }
 
@@ -107,7 +171,7 @@ body {
 :focus-visible {
   outline: 1.5px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar {
@@ -122,20 +186,128 @@ body {
   border-radius: 99px;
   border: 3px solid var(--bg);
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--fg-4);
+
+/* ==========================================================================
+   Atmosphere: film grain + one soft accent glow at the top of the page
+   ========================================================================== */
+
+/*
+ * Static on purpose: moving grain reads as "flashy", still grain as "paper".
+ * The specks are the site's accent: a flat accent-coloured layer, stencilled
+ * by a noise texture (mask-image), so the background stays put and only the
+ * grain takes the photo's colour. It follows --gh/--gs, stepped copies of the
+ * accent: a smooth fade on a full-screen layer would repaint the whole screen
+ * every frame. No blend mode, for the same reason.
+ */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-color: hsl(var(--gh) var(--gs) 70%);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -1.1'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -1.1'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.light .grain::after {
+  background-color: hsl(var(--gh) var(--gs) 34%);
+}
+
+.glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 620px;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(48% 60% at 50% 0%, var(--accent-glow), transparent 72%),
+    radial-gradient(30% 40% at 78% 8%, hsl(calc(var(--ah) + 40) var(--as) 50% / 0.07), transparent 70%);
 }
 
 /* ==========================================================================
-   Typography utilities
+   Blueprint frame — dotted rules with square nodes where they cross
    ========================================================================== */
 
-/* Small uppercase mono label — used for every section heading and metadata key */
+/* A 1px line drawn as 1px-on / 4px-off dots. Works in both directions. */
+.dots-x {
+  height: 1px;
+  background: var(--rule);
+  mask-image: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 5px);
+}
+.dots-y {
+  width: 1px;
+  background: var(--rule);
+  mask-image: repeating-linear-gradient(180deg, #000 0 1px, transparent 1px 5px);
+}
+
+/* The page column. Its vertical rules run the full height of the document. */
+.frame {
+  position: relative;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 44rem;
+}
+.frame::before,
+.frame::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--rule);
+  mask-image: repeating-linear-gradient(180deg, #000 0 1px, transparent 1px 5px);
+  pointer-events: none;
+}
+.frame::before {
+  left: 0;
+}
+.frame::after {
+  right: 0;
+}
+
+/* Horizontal rule that bleeds to the viewport edges, with nodes on the frame */
+.rule {
+  position: relative;
+  height: 1px;
+}
+.rule > .dots-x {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  translate: -50% 0;
+}
+.rule > .node {
+  position: absolute;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+}
+.rule > .node-l {
+  left: -2px;
+}
+.rule > .node-r {
+  right: -2px;
+}
+
+/* Subtle dot grid used inside glyph tiles and cards */
+.dotgrid {
+  background-image: radial-gradient(var(--line-2) 0.7px, transparent 0.7px);
+  background-size: 9px 9px;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
 .label {
   font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 500;
-  letter-spacing: 0.17em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--fg-3);
 }
@@ -153,7 +325,7 @@ body {
   letter-spacing: -0.015em;
 }
 
-/* Inline link inside prose: underline grows from the left on hover */
+/* Inline prose link: underline in the accent, thickens on hover */
 .link {
   color: var(--fg);
   text-decoration: none;
@@ -162,14 +334,16 @@ body {
   background-position: 0 100%;
   background-size: 100% 1px;
   padding-bottom: 1px;
-  transition: color 0.3s var(--ease-out-expo), background-size 0.4s var(--ease-out-expo);
+  transition:
+    color 0.3s var(--ease-out-expo),
+    background-size 0.4s var(--ease-out-expo);
 }
 .link:hover {
   color: var(--accent);
   background-size: 100% 1.5px;
 }
 
-/* Quiet link that only reveals its underline on hover */
+/* Quiet link: the underline grows in from the left on hover */
 .link-quiet {
   color: var(--fg-3);
   text-decoration: none;
@@ -177,55 +351,88 @@ body {
   background-repeat: no-repeat;
   background-position: 0 100%;
   background-size: 0 1px;
-  transition: color 0.3s var(--ease-out-expo), background-size 0.4s var(--ease-out-expo);
+  transition:
+    color 0.3s var(--ease-out-expo),
+    background-size 0.4s var(--ease-out-expo);
 }
 .link-quiet:hover {
   color: var(--accent);
   background-size: 100% 1px;
 }
 
+.chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--fg-3);
+  border: 1px dashed var(--line-2);
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-3);
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 4px;
+  line-height: 1.5;
+}
+
 /* ==========================================================================
-   Scroll reveal
+   Motion — one vocabulary for the whole site
+   Everything enters by coming *into focus*: blur → sharp, a few px of lift.
    ========================================================================== */
 
+/*
+ * Blocks rise and fade in. No blur here: animating a filter over a whole card
+ * (often with a live canvas inside) repaints it every frame. Blur-to-focus is
+ * kept for small text only (.rise-focus) and the onboarding.
+ */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.85s var(--ease-out-expo), transform 0.85s var(--ease-out-expo);
-  will-change: opacity, transform;
+  translate: 0 10px;
+  transition:
+    opacity 0.6s var(--ease-soft),
+    translate 0.6s var(--ease-soft);
 }
+/* `none`, not 0 0, for the same containing-block reason as .page-in */
 .reveal[data-visible="true"] {
   opacity: 1;
-  transform: none;
+  translate: none;
 }
 
-/* Hero entrance — runs on load, not on scroll */
-@keyframes rise {
+@keyframes focus-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    filter: blur(8px);
+    translate: 0 12px;
   }
   to {
     opacity: 1;
-    transform: none;
+    filter: blur(0);
+    translate: 0 0;
   }
 }
-.rise {
-  opacity: 0;
-  animation: rise 1s var(--ease-out-expo) forwards;
-}
-
-@keyframes draw-line {
+@keyframes fade-up {
   from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
+    opacity: 0;
+    translate: 0 10px;
   }
 }
-.draw {
-  transform-origin: left;
-  animation: draw-line 1.1s var(--ease-out-expo) forwards;
+/* Hero entrance. Held while the onboarding overlay is up, released after. */
+.rise {
+  animation: fade-up 0.8s var(--ease-soft) backwards;
+}
+/* Small text can afford to come into focus from a blur */
+.rise.rise-focus {
+  animation-name: focus-in;
+}
+html.intro .rise {
+  animation-play-state: paused;
 }
 
 @keyframes fade-in {
@@ -237,157 +444,376 @@ body {
   }
 }
 
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  translate: 0 0.18em;
+  background: currentColor;
+  animation: blink 1.05s steps(1) infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--accent);
+  animation: pulse-dot 2.4s var(--ease-soft) infinite;
+}
+
+/* Equaliser bars on the now-playing card */
+@keyframes eq {
+  0%,
+  100% {
+    scale: 1 0.25;
+  }
+  50% {
+    scale: 1 1;
+  }
+}
+.eq > span {
+  width: 2px;
+  height: 11px;
+  border-radius: 1px;
+  background: var(--accent);
+  transform-origin: bottom;
+  animation: eq 1.1s var(--ease-soft) infinite;
+}
+.eq > span:nth-child(2) {
+  animation-duration: 0.8s;
+  animation-delay: -0.3s;
+}
+.eq > span:nth-child(3) {
+  animation-duration: 1.3s;
+  animation-delay: -0.6s;
+}
+.eq[data-paused="true"] > span {
+  animation-play-state: paused;
+  scale: 1 0.25;
+}
+
+/* Contribution cells settle in as a diagonal wave the first time they're seen */
+@keyframes cell-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+/*
+ * The year settles in week by week: 53 animations rather than 371, so the
+ * browser isn't juggling hundreds of tiny layers at once.
+ */
+.heat-col {
+  opacity: 0;
+}
+[data-visible="true"] .heat-col {
+  opacity: 1;
+  animation: cell-in 0.5s var(--ease-soft) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.heat-cell {
+  transition: scale 0.2s var(--ease-soft);
+}
+.heat-cell:hover {
+  scale: 1.5;
+}
+
+/* Expandable rows: animating grid rows 0fr → 1fr opens to the content's natural height */
+.expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s var(--ease-soft);
+}
+.expand[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.expand > div {
+  overflow: hidden;
+  min-height: 0;
+}
+.expand > div > * {
+  opacity: 0;
+  translate: 0 -6px;
+  transition:
+    opacity 0.4s var(--ease-soft),
+    translate 0.4s var(--ease-soft);
+}
+.expand[data-open="true"] > div > * {
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 0.08s;
+}
+
 /* ==========================================================================
-   Rows — projects, experience, reading. A list, not a grid of cards.
+   Onboarding overlay
+   Rendered on the server so it covers the page from the first paint. The
+   inline script in <head> adds `intro` to <html> only for first-time visitors;
+   everyone else never sees it.
    ========================================================================== */
 
-.row {
-  position: relative;
-  display: block;
-  padding: 22px 16px 22px 16px;
-  margin-inline: -16px;
-  border-radius: 6px;
-  transition: background-color 0.45s var(--ease-out-expo);
-}
-.row::after {
-  content: "";
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 0;
-  height: 1px;
-  background: var(--line);
-}
-.row:last-child::after {
+#onboarding {
   display: none;
 }
-.row:hover {
-  background: var(--bg-1);
+html.intro #onboarding {
+  display: grid;
+  /* Failsafe: if JavaScript never arrives, don't trap the visitor. */
+  animation: intro-failsafe 0s linear 14s forwards;
 }
-.row:hover .row-title {
-  color: var(--accent);
+html.intro body {
+  overflow: hidden;
 }
-.row:hover .row-arrow {
-  opacity: 1;
-  transform: none;
-}
-
-.row-title {
-  font-weight: 500;
-  color: var(--fg);
-  transition: color 0.35s var(--ease-out-expo);
+@keyframes intro-failsafe {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
-/* The arrow that slides in from the left on hover */
-.row-arrow {
-  display: inline-block;
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo);
-  color: var(--accent);
+@keyframes script-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    scale: 1;
+  }
+}
+@keyframes script-out {
+  to {
+    opacity: 0;
+    filter: blur(10px);
+    scale: 1.03;
+  }
 }
 
-/* Tech chips */
-.chip {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.02em;
-  color: var(--fg-3);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 2.5px 7px;
+/* ==========================================================================
+   Page transition — every route comes into focus the same way
+   ========================================================================== */
+
+/*
+ * `backwards`, never `both`: a filter or translate left on the wrapper after
+ * the animation (even blur(0)) turns it into the containing block for every
+ * position: fixed descendant — modals and the photo viewer would then be
+ * trapped inside the page instead of covering the viewport.
+ */
+.page-in {
+  animation: fade-up 0.45s var(--ease-soft) backwards;
+}
+
+/* Banner slides: a slow, endless drift (Ken Burns) */
+@keyframes kenburns {
+  from {
+    scale: 1.02;
+    translate: -1% 0.5%;
+  }
+  to {
+    scale: 1.12;
+    translate: 1% -1%;
+  }
+}
+.kenburns {
+  animation: kenburns 16s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+.kenburns[data-active="true"] {
+  animation-play-state: running;
+}
+
+/* Calendar: the day grid slides in the direction you paged */
+@keyframes cal-slide-next {
+  from {
+    opacity: 0;
+    translate: 14px 0;
+  }
+}
+@keyframes cal-slide-prev {
+  from {
+    opacity: 0;
+    translate: -14px 0;
+  }
+}
+@keyframes cal-slide-none {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Skills: rows of tools drifting past, alternating direction */
+.skills-row {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.skills-track {
+  display: flex;
+  width: max-content;
+  animation: skills-scroll var(--dur, 40s) linear infinite;
+}
+.skills-row[data-reverse="true"] .skills-track {
+  animation-direction: reverse;
+}
+.skills-row:hover .skills-track {
+  animation-play-state: paused;
+}
+/* margin, not gap: the duplicated list must be exactly half the track */
+.skill {
+  margin-right: 6px;
   white-space: nowrap;
-  transition: border-color 0.35s var(--ease-out-expo), color 0.35s var(--ease-out-expo);
-}
-.row:hover .chip {
-  border-color: var(--line-2);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
   color: var(--fg-2);
+  background: color-mix(in oklab, var(--bg-1) 60%, transparent);
+  transition:
+    color 0.3s var(--ease-soft),
+    border-color 0.3s var(--ease-soft);
+}
+.skill:hover {
+  color: var(--accent);
+  border-color: color-mix(in oklab, var(--accent) 60%, var(--line-2));
+}
+@keyframes skills-scroll {
+  to {
+    translate: -50% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skills-track {
+    flex-wrap: wrap;
+    width: auto;
+  }
 }
 
 /* ==========================================================================
-   Texture — a fixed film-grain layer over the whole page
+   Dock — fixed at the bottom; icons magnify toward the pointer
    ========================================================================== */
 
-.grain::before {
-  content: "";
+.dock-fade {
   position: fixed;
-  inset: -50%;
-  z-index: 60;
+  inset: auto 0 0 0;
+  height: 96px;
+  z-index: 40;
   pointer-events: none;
-  opacity: 0.038;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.light .grain::before {
-  opacity: 0.028;
+  background: linear-gradient(to top, var(--bg) 18%, color-mix(in oklab, var(--bg) 60%, transparent) 55%, transparent);
 }
 
-/* ==========================================================================
-   Gallery
-   ========================================================================== */
+.dock {
+  background: color-mix(in oklab, var(--bg-1) 72%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 12px 40px -12px rgb(0 0 0 / 0.55),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+.light .dock {
+  box-shadow:
+    0 12px 40px -16px rgb(40 30 20 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
 
-.collage {
-  columns: 1;
-  column-gap: 14px;
+.dock-item {
+  --base: 36px;
+  width: var(--size, var(--base));
+  height: var(--size, var(--base));
+  transition:
+    width 0.18s var(--ease-soft),
+    height 0.18s var(--ease-soft),
+    background-color 0.3s var(--ease-soft),
+    color 0.3s var(--ease-soft);
 }
 @media (min-width: 640px) {
-  .collage {
-    columns: 2;
+  .dock-item {
+    --base: 40px;
   }
 }
-@media (min-width: 1024px) {
-  .collage {
-    columns: 3;
-    column-gap: 18px;
-  }
-}
-.collage > * {
-  break-inside: avoid;
-  margin-bottom: 14px;
-}
-@media (min-width: 1024px) {
-  .collage > * {
-    margin-bottom: 18px;
-  }
-}
-
-.plate {
-  position: relative;
-  display: block;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 4px;
-  background: var(--bg-2);
-  cursor: zoom-in;
-}
-.plate img {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: saturate(0.82) contrast(1.02);
-  transition: transform 1.2s var(--ease-out-expo), filter 0.7s var(--ease-out-expo);
-}
-.plate:hover img {
-  transform: scale(1.035);
-  filter: saturate(1) contrast(1);
-}
-.plate figcaption {
-  position: absolute;
-  inset: auto 0 0 0;
-  padding: 28px 14px 12px;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.72), transparent);
-  color: #f4efe8;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.45s var(--ease-out-expo), transform 0.45s var(--ease-out-expo);
-}
-.plate:hover figcaption,
-.plate:focus-visible figcaption {
-  opacity: 1;
-  transform: none;
+.dock-item svg {
+  width: 42%;
+  height: 42%;
 }
 
 /* ==========================================================================
-   Print — /resume
+   Project art — printed tiles that contrast with the page in both themes.
+   The canvas reads its four inks from these computed colours.
+   ========================================================================== */
+
+.glyph-tile {
+  --g-bg: #ebe4d8;
+  --g-ink: #1d1a16;
+  --g-dim: rgb(29 26 22 / 0.5);
+  --g-faint: rgb(29 26 22 / 0.17);
+  --g-accent: hsl(var(--ah) 62% 42%);
+  background-color: var(--g-bg);
+  background-image: radial-gradient(var(--g-faint) 0.8px, transparent 0.8px);
+  background-size: 10px 10px;
+}
+.light .glyph-tile {
+  --g-bg: #1c1a17;
+  --g-ink: #efe9df;
+  --g-dim: rgb(239 233 223 / 0.5);
+  --g-faint: rgb(239 233 223 / 0.16);
+  --g-accent: hsl(var(--ah) 70% 64%);
+}
+.glyph-canvas {
+  color: var(--g-accent);
+  border-color: var(--g-ink);
+  outline-color: var(--g-dim);
+  text-decoration-color: var(--g-faint);
+}
+
+/* ==========================================================================
+   Gallery — an iOS Photos-style library
+   ========================================================================== */
+
+.photo-cell img {
+  transition:
+    filter 0.4s var(--ease-soft),
+    scale 0.6s var(--ease-soft);
+}
+.photo-cell:hover img {
+  filter: brightness(1.08);
+  scale: 1.03;
+}
+
+/* ==========================================================================
+   X posts (react-tweet), dressed in the site's own tokens
+   ========================================================================== */
+
+.tweets .react-tweet-theme {
+  --tweet-container-margin: 0;
+  --tweet-bg-color: var(--bg-1);
+  --tweet-bg-color-hover: var(--bg-2);
+  --tweet-font-color: var(--fg);
+  --tweet-font-color-secondary: var(--fg-3);
+  --tweet-border: 1px solid var(--line-2);
+  --tweet-color-blue-primary: var(--accent);
+  --tweet-color-blue-secondary: var(--accent);
+  --tweet-font-family: var(--font-sans);
+  --tweet-body-font-size: 14px;
+  --tweet-body-line-height: 1.6;
+  border-radius: 14px;
+}
+
+/* ==========================================================================
+   Print
    ========================================================================== */
 
 @media print {
@@ -413,12 +839,16 @@ body {
     line-height: 1.5;
   }
   .no-print,
-  .grain::before {
+  .grain::after,
+  .glow,
+  .frame::before,
+  .frame::after {
     display: none !important;
   }
   .reveal {
     opacity: 1 !important;
-    transform: none !important;
+    filter: none !important;
+    translate: none !important;
   }
   a {
     text-decoration: none !important;
@@ -447,11 +877,11 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .reveal {
+  .reveal,
+  .rise,
+  .heat-cell {
     opacity: 1;
-    transform: none;
-  }
-  .rise {
-    opacity: 1;
+    filter: none;
+    translate: none;
   }
 }

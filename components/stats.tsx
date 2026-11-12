@@ -1,18 +1,23 @@
 import { profile } from "@/content/profile";
-import { getGitHubStats, type Day } from "@/lib/github";
+import { getGitHubStats, getLatestPush, type Day, type LatestPush } from "@/lib/github";
 import { getLeetCodeStats } from "@/lib/leetcode";
 import { Reveal } from "./reveal";
 import { ArrowUpRight } from "./icons";
+import { TimeAgo } from "./time-ago";
 
 const nf = new Intl.NumberFormat("en-US");
 
 export async function Stats() {
-  const [github, leetcode] = await Promise.all([getGitHubStats(), getLeetCodeStats()]);
+  const [github, push, leetcode] = await Promise.all([
+    getGitHubStats(),
+    getLatestPush(),
+    getLeetCodeStats(),
+  ]);
 
   return (
     <div className="grid gap-4">
       <Reveal>
-        <GitHubPanel stats={github} />
+        <GitHubPanel stats={github} push={push} />
       </Reveal>
       <Reveal delay={80}>
         <LeetCodePanel stats={leetcode} />
@@ -33,7 +38,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="group/panel rounded-lg border border-line bg-bg-1/45 p-5 transition-colors duration-500 hover:border-line-2 sm:p-6">
+    <section className="group/panel rounded-xl border border-dashed border-line-2 bg-bg-1/30 p-5 transition-colors duration-500 hover:border-solid sm:p-6">
       <header className="mb-5 flex items-center justify-between gap-4">
         <h3 className="label">{label}</h3>
         <a
@@ -61,7 +66,13 @@ function Unavailable({ what }: { what: string }) {
 
 /* ------------------------------------------------------------------ github */
 
-function GitHubPanel({ stats }: { stats: Awaited<ReturnType<typeof getGitHubStats>> }) {
+function GitHubPanel({
+  stats,
+  push,
+}: {
+  stats: Awaited<ReturnType<typeof getGitHubStats>>;
+  push: LatestPush | null;
+}) {
   return (
     <Panel label="GitHub" href={profile.links.github}>
       {!stats ? (
@@ -77,11 +88,24 @@ function GitHubPanel({ stats }: { stats: Awaited<ReturnType<typeof getGitHubStat
 
           <Heatmap weeks={stats.weeks} />
 
-          <dl className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4">
-            <Stat label="Repos" value={stats.publicRepos} />
-            <Stat label="Stars" value={stats.stars} />
-            <Stat label="Followers" value={stats.followers} />
-          </dl>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-t border-dashed border-line-2 pt-4">
+            <dl className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <Stat label="Repos" value={stats.publicRepos} />
+              <Stat label="Stars" value={stats.stars} />
+              <Stat label="Followers" value={stats.followers} />
+            </dl>
+            {push ? (
+              <p className="font-mono text-[11px] text-fg-3">
+                last push →{" "}
+                <a href={push.url} target="_blank" rel="noreferrer" className="link-quiet !text-fg-2">
+                  {push.repo}
+                </a>{" "}
+                <span className="text-fg-4">
+                  · <TimeAgo iso={push.at} />
+                </span>
+              </p>
+            ) : null}
+          </div>
         </>
       )}
     </Panel>
@@ -143,12 +167,17 @@ function Heatmap({ weeks }: { weeks: Day[][] }) {
         aria-label={`GitHub contribution graph for the last year`}
       >
         {weeks.map((week, i) => (
-          <div key={i} className="grid grid-rows-7 gap-[2px]">
+          <div
+            key={i}
+            className="heat-col grid grid-rows-7 gap-[2px]"
+            // Each week lands a beat after the last: the year sweeps in left to right.
+            style={{ "--d": `${i * 12}ms` } as React.CSSProperties}
+          >
             {week.map((day) => (
               <span
                 key={day.date}
                 title={`${day.count} contribution${day.count === 1 ? "" : "s"} on ${day.date}`}
-                className="aspect-square w-full rounded-[1.5px] transition-transform duration-200 hover:scale-[1.45]"
+                className="heat-cell aspect-square w-full rounded-[1.5px]"
                 style={{ background: `var(--heat-${day.level})` }}
               />
             ))}

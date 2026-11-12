@@ -116,3 +116,35 @@ export async function getGitHubStats(): Promise<GitHubStats | null> {
   if (!calendar) return null;
   return { ...calendar, ...counts };
 }
+
+export type LatestPush = { repo: string; url: string; at: string };
+
+/**
+ * The most recent push to any public repo, from GitHub's public events feed.
+ * Cached for 30 minutes — fresh enough to prove the site is alive.
+ */
+export async function getLatestPush(): Promise<LatestPush | null> {
+  try {
+    const res = await fetch(
+      `https://api.github.com/users/${profile.github}/events/public?per_page=40`,
+      { headers: headers(), next: { revalidate: 1800 } },
+    );
+    if (!res.ok) return null;
+
+    const events = (await res.json()) as {
+      type: string;
+      created_at: string;
+      repo: { name: string };
+    }[];
+    const push = events.find((e) => e.type === "PushEvent");
+    if (!push) return null;
+
+    return {
+      repo: push.repo.name.split("/")[1] ?? push.repo.name,
+      url: `https://github.com/${push.repo.name}`,
+      at: push.created_at,
+    };
+  } catch {
+    return null;
+  }
+}

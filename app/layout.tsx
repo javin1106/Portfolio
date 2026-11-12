@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import { profile } from "@/content/profile";
+import { Dock, TopBar } from "@/components/dock";
+import { Onboarding } from "@/components/onboarding";
+import { Terminal } from "@/components/terminal/terminal";
+import { PaletteCycler } from "@/components/palette-cycler";
+import { getInitialPalette, getSlides } from "@/lib/banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,7 +41,7 @@ export const metadata: Metadata = {
   keywords: [
     profile.name,
     "backend engineer",
-    "systems engineer",
+    "AI engineer",
     "Go",
     "TypeScript",
     "distributed systems",
@@ -71,22 +76,31 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0b0a09" },
-    { media: "(prefers-color-scheme: light)", color: "#faf7f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0b0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f2eb" },
   ],
 };
 
 /**
- * Applied before paint so the correct theme is on screen from the first frame.
- * Dark is the default; light is opt-in via storage or system preference.
+ * Runs before first paint, so nothing visibly "jumps":
+ *  - theme: dark by default, light if chosen or preferred by the system;
+ *  - onboarding: only on the home page, only for a first visit (or ?intro),
+ *    never for people who asked the OS to reduce motion.
  */
-const THEME_SCRIPT = `(function(){try{
-var s=localStorage.getItem("theme");
-var light = s ? s==="light" : window.matchMedia("(prefers-color-scheme: light)").matches;
-if(light) document.documentElement.classList.add("light");
+const BOOT_SCRIPT = `(function(){try{
+var d=document.documentElement,ls=localStorage;
+var t=ls.getItem("theme");
+if(t?t==="light":matchMedia("(prefers-color-scheme: light)").matches)d.classList.add("light");
+var forced=/[?&]intro(=|&|$)/.test(location.search);
+if(location.pathname==="/"&&(forced||(!ls.getItem("intro-seen")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)))d.classList.add("intro");
 }catch(e){}})();`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // The first banner photo's colours, baked into the HTML so the very first
+  // frame is already in palette — the slideshow takes over from there.
+  const [p, slides] = await Promise.all([getInitialPalette(), getSlides()]);
+  const palette = `:root{--ah:${p.ah};--as:${p.as}%;--gh:${p.ah};--gs:${p.as}%;--th:${p.th};--ts:${p.ts}%}`;
+
   return (
     // The font variables must live on <html>: Tailwind's `@theme` resolves
     // --font-sans/serif/mono at :root, so the next/font variables they point at
@@ -97,9 +111,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <style dangerouslySetInnerHTML={{ __html: palette }} />
+        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body className="grain">
+        <Onboarding />
+        <Terminal />
+        <TopBar />
+        <PaletteCycler palettes={slides.map((s) => s.palette)} />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-bg-1 focus:px-4 focus:py-2 focus:text-sm"
@@ -107,6 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         {children}
+        <Dock />
       </body>
     </html>
   );
