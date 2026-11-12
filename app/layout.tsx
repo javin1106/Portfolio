@@ -6,6 +6,7 @@ import { Onboarding } from "@/components/onboarding";
 import { Terminal } from "@/components/terminal/terminal";
 import { PaletteCycler } from "@/components/palette-cycler";
 import { getInitialPalette, getSlides } from "@/lib/banner";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +30,6 @@ const jetbrains = JetBrains_Mono({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://javinchutani.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

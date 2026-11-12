@@ -102,5 +102,6 @@ OG_URL=http://localhost:3000 npm run og      # in another
 ## Deploying
 
 Push to GitHub and import the repo on Vercel — no configuration needed. Set
-`NEXT_PUBLIC_SITE_URL` to the final domain so canonical URLs, `sitemap.xml` and
-the Open Graph tags point at the right place.
+`NEXT_PUBLIC_SITE_URL` only if you use a custom domain; otherwise the site uses
+the production address Vercel provides (`VERCEL_PROJECT_PRODUCTION_URL`), so
+share cards, `sitemap.xml` and canonical links always point at the live domain.
