@@ -41,3 +41,6 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# untouched copies of photos that were reshaped for the site
+/_originals/

@@ -1,89 +1,132 @@
-import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { profile } from "@/content/profile";
+import { Dock, TopBar } from "@/components/dock";
+import { Onboarding } from "@/components/onboarding";
+import { Terminal } from "@/components/terminal/terminal";
+import { PaletteCycler } from "@/components/palette-cycler";
+import { getInitialPalette, getSlides } from "@/lib/banner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrument = Instrument_Serif({
+  variable: "--font-instrument",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const requestHeaders = await headers();
-  const host =
-    requestHeaders.get("x-forwarded-host") ??
-    requestHeaders.get("host") ??
-    "localhost:3000";
-  const protocol =
-    requestHeaders.get("x-forwarded-proto") ??
-    (host.includes("localhost") ? "http" : "https");
-  const baseUrl = new URL(`${protocol}://${host}`);
-  const description =
-    "Javin's colorful portfolio — systems engineering, full-stack products, applied AI, selected projects, experience, and creative work.";
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
 
-  return {
-    metadataBase: baseUrl,
-    title: {
-      default: "Javin — Engineer, Builder & Systems Explorer",
-      template: "%s · Javin",
-    },
-    description,
-    keywords: [
-      "Javin",
-      "software engineer",
-      "backend engineer",
-      "full-stack developer",
-      "Go developer",
-      "React developer",
-      "portfolio",
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://javinchutani.vercel.app";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${profile.name} — ${profile.role}`,
+    template: `%s · ${profile.name}`,
+  },
+  description: profile.tagline,
+  keywords: [
+    profile.name,
+    "backend engineer",
+    "AI engineer",
+    "Go",
+    "TypeScript",
+    "distributed systems",
+    "NIT Jalandhar",
+    "portfolio",
+  ],
+  authors: [{ name: profile.name, url: profile.links.github }],
+  creator: profile.name,
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: profile.name,
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.tagline,
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: `${profile.name} — ${profile.role}`,
+      },
     ],
-    authors: [{ name: "Javin", url: "https://github.com/javin1106" }],
-    creator: "Javin",
-    icons: {
-      icon: "https://avatars.githubusercontent.com/u/108410532?v=4",
-      shortcut: "https://avatars.githubusercontent.com/u/108410532?v=4",
-    },
-    openGraph: {
-      type: "website",
-      title: "Javin — Engineer, Builder & Systems Explorer",
-      description,
-      url: baseUrl,
-      siteName: "Javin's Portfolio",
-      images: [
-        {
-          url: new URL("/og.png", baseUrl),
-          width: 1536,
-          height: 1024,
-          alt: "Javin — Engineer, Builder and Systems Explorer",
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "Javin — Engineer, Builder & Systems Explorer",
-      description,
-      images: [new URL("/og.png", baseUrl)],
-      creator: "@JavinChutani",
-    },
-  };
-}
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.tagline,
+    images: ["/og.png"],
+  },
+  robots: { index: true, follow: true },
+};
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0c0b0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f2eb" },
+  ],
+};
+
+/**
+ * Runs before first paint, so nothing visibly "jumps":
+ *  - theme: dark by default, light if chosen or preferred by the system;
+ *  - onboarding: only on the home page, only for a first visit (or ?intro),
+ *    never for people who asked the OS to reduce motion.
+ */
+const BOOT_SCRIPT = `(function(){try{
+var d=document.documentElement,ls=localStorage;
+var t=ls.getItem("theme");
+if(t?t==="light":matchMedia("(prefers-color-scheme: light)").matches)d.classList.add("light");
+var forced=/[?&]intro(=|&|$)/.test(location.search);
+if(location.pathname==="/"&&(forced||(!ls.getItem("intro-seen")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)))d.classList.add("intro");
+}catch(e){}})();`;
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // The first banner photo's colours, baked into the HTML so the very first
+  // frame is already in palette — the slideshow takes over from there.
+  const [p, slides] = await Promise.all([getInitialPalette(), getSlides()]);
+  const palette = `:root{--ah:${p.ah};--as:${p.as}%;--gh:${p.ah};--gs:${p.as}%;--th:${p.th};--ts:${p.ts}%}`;
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    // The font variables must live on <html>: Tailwind's `@theme` resolves
+    // --font-sans/serif/mono at :root, so the next/font variables they point at
+    // have to be declared there too, not on <body>.
+    <html
+      lang="en"
+      className={`${inter.variable} ${instrument.variable} ${jetbrains.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: palette }} />
+        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
+      </head>
+      <body className="grain">
+        <Onboarding />
+        <Terminal />
+        <TopBar />
+        <PaletteCycler palettes={slides.map((s) => s.palette)} />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-bg-1 focus:px-4 focus:py-2 focus:text-sm"
+        >
+          Skip to content
+        </a>
         {children}
+        <Dock />
       </body>
     </html>
   );
